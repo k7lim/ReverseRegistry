@@ -9,12 +9,16 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.reverseregistry.databinding.ActivityRegistryGridBinding
 import com.reverseregistry.databinding.ItemGridPhotoBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RegistryGridActivity : AppCompatActivity() {
 
@@ -42,35 +46,43 @@ class RegistryGridActivity : AppCompatActivity() {
     }
 
     private fun loadPhotos() {
-        val projection = arrayOf(
-            MediaStore.Images.Media._ID,
-            MediaStore.Images.Media.DISPLAY_NAME,
-            MediaStore.Images.Media.DATE_TAKEN,
-        )
-        val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
+        lifecycleScope.launch(Dispatchers.IO) {
+            val projection = arrayOf(
+                MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DISPLAY_NAME,
+                MediaStore.Images.Media.DATE_TAKEN,
+            )
+            val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
-        contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            null, //we want everything
-            null,
-            sortOrder
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
-            val dateTakenColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
+            val cursor = contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null, //we want everything
+                null,
+                sortOrder
+            )
 
-            val photos = ArrayList<Photo>()
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idColumn)
-                val name = cursor.getString(nameColumn)
-                val dateTaken = cursor.getLong(dateTakenColumn)
-                val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-                photos.add(Photo(id, name, dateTaken, uri))
+            if (cursor != null) {
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
+                val dateTakenColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
+
+                val photos = ArrayList<Photo>()
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(idColumn)
+                    val name = cursor.getString(nameColumn)
+                    val dateTaken = cursor.getLong(dateTakenColumn)
+                    val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                    photos.add(Photo(id, name, dateTaken, uri))
+                }
+                cursor.close()
+                withContext(Dispatchers.Main) {
+                    gridAdapter.submitList(photos)
+                }
             }
-            gridAdapter.submitList(photos)
         }
     }
+
 }
 data class Photo(val id: Long, val name: String, val dateTaken: Long, val uri: Uri)
 
