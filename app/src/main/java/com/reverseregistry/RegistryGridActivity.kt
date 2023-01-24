@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.reverseregistry.databinding.ActivityRegistryGridBinding
 import com.reverseregistry.databinding.ItemGridPhotoBinding
 import kotlinx.coroutines.Dispatchers
@@ -98,7 +99,7 @@ class PhotoGridAdapter(private val context: Context) : ListAdapter<Photo, PhotoG
 
     inner class ViewHolder(private val binding: ItemGridPhotoBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(uri: Uri) {
-            binding.photoGridItemImage.setImageURI(uri)
+            binding.photoGridItemImage.load(uri)
         }
     }
     object DiffCallback : DiffUtil.ItemCallback<Photo>() {
