@@ -20,6 +20,9 @@
         android:theme="@style/Theme.ReverseRegistry"
         tools:targetApi="31">
         <activity
+            android:name=".ImageSubmitActivity"
+            android:exported="false" />
+        <activity
             android:name=".RegistryGridActivity"
             android:exported="true">
             <intent-filter>
