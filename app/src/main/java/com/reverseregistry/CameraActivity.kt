@@ -2,6 +2,7 @@ package com.reverseregistry
 
 import android.Manifest
 import android.content.ContentValues
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -90,6 +91,9 @@ class CameraActivity : AppCompatActivity() {
                         val msg = "Photo capture succeeded: ${output.savedUri}"
                         Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                         Log.d(TAG, msg)
+                        val intent = Intent(this@CameraActivity, ImageSubmitActivity::class.java)
+                        intent.putExtra(ImageSubmitActivity.IMAGE_URI_KEY, output.savedUri)
+                        startActivity(intent)
                     }
                 }
             )
